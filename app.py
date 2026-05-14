@@ -34,7 +34,7 @@ def run_loocv_sweep(X_full, y, k_range, kernel, strategy, C_f=0.1, g_f=0.001):
             X_tr, y_tr = np.delete(X_full, fold, axis=0), np.delete(y, fold)
             X_te = X_full[fold, :].reshape(1, -1)
             
-            # Feature Selection (must be inside outer loop to avoid data leakage)
+            # Feature Selection
             fs = calculate_fisher_scores(X_tr, y_tr)
             sel = np.argsort(fs)[::-1][:k]
             
@@ -45,7 +45,7 @@ def run_loocv_sweep(X_full, y, k_range, kernel, strategy, C_f=0.1, g_f=0.001):
             best_C, best_g = C_f, g_f
             
             if strategy == 'N':
-                # TRUE NESTED LOOCV (This is what makes it 'Correct')
+                # TRUE NESTED LOOCV
                 best_inner_acc = -1
                 n_inner = len(y_tr)
                 
@@ -59,7 +59,8 @@ def run_loocv_sweep(X_full, y, k_range, kernel, strategy, C_f=0.1, g_f=0.001):
                             Xi_te = X_tr_s[ifold, :].reshape(1, -1)
                             
                             m_in = SVC(kernel=kernel, C=cc, gamma=gg).fit(Xi_tr, yi_tr)
-                            inner_preds[ifold] = m_in.predict(Xi_te)
+                            # ARREGLADO: predict() primero, item() después
+                            inner_preds[ifold] = m_in.predict(Xi_te).item()
                         
                         inner_acc = np.mean(inner_preds == y_tr)
                         if inner_acc > best_inner_acc:
@@ -67,7 +68,8 @@ def run_loocv_sweep(X_full, y, k_range, kernel, strategy, C_f=0.1, g_f=0.001):
             
             # Final model with best parameters
             final_mdl = SVC(kernel=kernel, C=best_C, gamma=best_g).fit(X_tr_s, y_tr)
-            preds[fold] = final_mdl.item(X_te_s)
+            # ARREGLADO: predict() primero, item() después
+            preds[fold] = final_mdl.predict(X_te_s).item()
             
         acc_results.append(np.mean(preds == y))
     return np.array(acc_results)
@@ -85,7 +87,6 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     y_L1 = df.iloc[:, 0].values
     X = df.iloc[:, 2:].values
-    # Custom Labels L2
     y_L2 = np.array([0,1,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,1,1])
     k_range = np.arange(2, 32, 2)
 
@@ -93,7 +94,6 @@ if uploaded_file:
         st.warning("Running true Nested LOOCV. This will take a few minutes but the results will be CORRECT.")
         
         results = {}
-        # Define experiments
         exps = [
             ('L1_Lin_C', y_L1, 'linear', 'C'), ('L2_Lin_C', y_L2, 'linear', 'C'),
             ('L1_Lin_N', y_L1, 'linear', 'N'), ('L2_Lin_N', y_L2, 'linear', 'N'),
@@ -101,14 +101,12 @@ if uploaded_file:
             ('L1_RBF_N', y_L1, 'rbf', 'N'),    ('L2_RBF_N', y_L2, 'rbf', 'N')
         ]
         
-        # Execution with progress bar
         pbar = st.progress(0)
         for i, (name, y_lab, kern, strat) in enumerate(exps):
             st.write(f"Processing {name}...")
             results[name] = run_loocv_sweep(X, y_lab, k_range, kern, strat)
             pbar.progress((i + 1) / len(exps))
 
-        # --- PLOTTING ---
         def draw_subplot(d1, d2, l1, l2, title):
             fig, ax = plt.subplots(figsize=(6, 4))
             ax.plot(k_range, d1, '-o', label=l1, color='#0072BD', linewidth=2, markersize=6)
