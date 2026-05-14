@@ -67,7 +67,7 @@ def run_loocv_sweep(X_full, y, k_range, kernel, strategy, C_f=0.1, g_f=0.001):
             
             # Final model with best parameters
             final_mdl = SVC(kernel=kernel, C=best_C, gamma=best_g).fit(X_tr_s, y_tr)
-            preds[fold] = final_mdl.predict(X_te_s)
+            preds[fold] = final_mdl.item(X_te_s)
             
         acc_results.append(np.mean(preds == y))
     return np.array(acc_results)
