@@ -9,7 +9,7 @@ import io
 import zipfile  # Needed to compress and download all plots at once
 
 # =========================================================================
-# ACCURATE CORE LOGIC (MATLAB REPLICATION)
+# ACCURATE CORE LOGIC
 # =========================================================================
 
 def calculate_fisher_scores(X, y):
@@ -77,12 +77,6 @@ def run_loocv_sweep(X_full, y, k_range, kernel, strategy, C_f=0.1, g_f=0.001):
 st.set_page_config(page_title="SVM Research Suite", layout="wide")
 st.title("📊 SVM Experiment Battery")
 
-# --- INITIAL EXPORT INITIALIZATION IN SIDEBAR ---
-st.sidebar.subheader("⚙️ Export Configuration")
-export_option = st.sidebar.radio(
-    "How would you like to handle the generated plots?",
-    ["Download all together in a single .ZIP file", "View and save individually at the bottom"]
-)
 
 uploaded_file = st.sidebar.file_uploader("Upload Data (CSV)", type=["csv"])
 
@@ -176,9 +170,9 @@ if uploaded_file:
             st.pyplot(figures['6. Lin vs RBF (L2 Nested)'])
             st.pyplot(figures['8. Fixed vs Nested (L2 Lin)'])
 
-        # --- MATLAB-STYLE INDIVIDUAL PLOT INSPECTOR ---
+        # --- INDIVIDUAL PLOT INSPECTOR ---
         st.markdown("---")
-        st.subheader("🔍 Individual Plot Inspector (MATLAB Style)")
+        st.subheader("🔍 Individual Plot Inspector")
         st.write("Select a specific experiment plot from the dropdown menu to inspect it in high resolution and export it separately:")
         
         selected_plot = st.selectbox("Choose a plot to inspect:", list(figures.keys()))
