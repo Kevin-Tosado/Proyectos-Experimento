@@ -174,7 +174,7 @@ if uploaded_file:
         }
 
         # --- BATCH EXPORT OPTION (ZIP PACKAGER) ---
-        st.subheader("📦 Export All Figures to ZIP file")
+        st.subheader("Export All Figures")
         
         # Compress all active memory figures into a downloadable ZIP archive
         zip_buffer = io.BytesIO()
